@@ -51,8 +51,8 @@ void init_serial_over_usb() {
 
 	// Wait here until the user presses ENTER
 	//
-//	while (!Serial.available())
-//		SPARK_WLAN_Loop();
+	while (!Serial.available())
+		SPARK_WLAN_Loop();
 
 	debug("Serial over USB ready to go.");
 }
