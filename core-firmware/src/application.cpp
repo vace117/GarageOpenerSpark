@@ -36,9 +36,6 @@ bool clientConnected = false;
 String commandBuffer; // Current command buffer
 
 
-
-#define EXTERNAL_FLASH_START_ADDRESS 0x80000
-
 void setup() {
 	init_serial_over_usb();
 
