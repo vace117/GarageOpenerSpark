@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="0.1604117455">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.1604117455" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration buildProperties="" description="" id="0.1604117455" name="Default" parent="org.eclipse.cdt.build.core.prefbase.cfg">
+					<folderInfo id="0.1604117455." name="/" resourcePath="">
+						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.87855414" name="No ToolChain" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
+							<targetPlatform id="org.eclipse.cdt.build.core.prefbase.toolchain.87855414.325773456" name=""/>
+							<builder buildPath="${workspace_loc:/core-firmware/build}" id="org.eclipse.cdt.build.core.settings.default.builder.364776049" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1357497401" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1899481488" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.549749741" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/arm-none-eabi/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-firmware/libraries/Serial2}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CMSIS/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CMSIS/Device/ST/STM32F10x/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/STM32F10x_StdPeriph_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/STM32_USB-FS-Device_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CC3000_Host_Driver}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/SPARK_Firmware_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/SPARK_Services/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-communication-lib/lib/tropicssl/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-communication-lib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-firmware/src/garage}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.834040242" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="USE_STDPERIPH_DRIVER"/>
+									<listOptionValue builtIn="false" value="STM32F10X_MD"/>
+									<listOptionValue builtIn="false" value="DFU_BUILD_ENABLE"/>
+								</option>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.878202330" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.335491244" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1845440894" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/arm-none-eabi/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-firmware/libraries/Serial2}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-firmware/libraries/garage}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CMSIS/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CMSIS/Device/ST/STM32F10x/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/STM32F10x_StdPeriph_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/STM32_USB-FS-Device_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CC3000_Host_Driver}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/SPARK_Firmware_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/SPARK_Services/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-communication-lib/lib/tropicssl/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-communication-lib/src}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.731340472" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="USE_STDPERIPH_DRIVER"/>
+									<listOptionValue builtIn="false" value="STM32F10X_MD"/>
+									<listOptionValue builtIn="false" value="DFU_BUILD_ENABLE"/>
+								</option>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1046998686" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1720539155" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.307853275" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/arm-none-eabi/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-firmware/libraries/Serial2}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CMSIS/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CMSIS/Device/ST/STM32F10x/Include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/STM32F10x_StdPeriph_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/STM32_USB-FS-Device_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/CC3000_Host_Driver}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/SPARK_Firmware_Driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-common-lib/SPARK_Services/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-communication-lib/lib/tropicssl/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-communication-lib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/core-firmware/src/garage}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.836338428" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="USE_STDPERIPH_DRIVER"/>
+									<listOptionValue builtIn="false" value="STM32F10X_MD"/>
+									<listOptionValue builtIn="false" value="DFU_BUILD_ENABLE"/>
+								</option>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.27955525" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="core-firmware.null.960255129" name="core-firmware"/>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="0.1604117455">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/core-firmware"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+</cproject>
