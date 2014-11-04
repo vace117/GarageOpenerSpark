@@ -17,7 +17,7 @@
 *.app
 
 # Debug folder
-Debug/*
+**/Debug/*
 
 # Release folder
 Release/*
@@ -50,3 +50,6 @@ unit/obj/
 
 .git*/
 seeds*bin
+
+
+master_key.h

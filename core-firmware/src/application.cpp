@@ -35,15 +35,17 @@ Garage garage;
 bool clientConnected = false;
 String commandBuffer; // Current command buffer
 
+RandomNumberGenerator rng;
 
 void setup() {
 	init_serial_over_usb();
 
-	initNewRandomSeed();
+	uint32_t challengeNonce[4];
 
-	uint16_t seedvec[3];
-	readRandomSeedFromFlash(seedvec);
-	readRandomSeedFromFlash(seedvec);
+	for ( int i = 0; i < 3; i++ ) {
+		rng.generateRandomChallengeNonce(challengeNonce);
+	}
+
 }
 
 
