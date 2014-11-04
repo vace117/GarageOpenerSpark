@@ -8,9 +8,9 @@
 #define LIBRARIES_RANDOM_SEEDS_H_
 
 #include <stdlib.h>
-#include <master_key.h>
+#include <master_key.h> // Contains the super secret shared key
 #include "tropicssl/sha1.h"
-
+#include "spark_wiring_wifi.h"
 
 #define EXTERNAL_FLASH_START_ADDRESS 0x80000
 #define NUMBER_OF_SEEDS 0xFFFF
@@ -19,11 +19,15 @@
 
 class RandomNumberGenerator {
 public:
-	RandomNumberGenerator() : seedvec {0,0,0}, currentSeedIndex(0) {
+	RandomNumberGenerator() :
+			seed_vector { 0, 0, 0 },
+			current_seed_index(0),
+			testServerIP(8, 8, 8, 8), // A DNS server
+			networkEntropy {0, 0, 0, 0} {
 
 		//
-		// We don't init randomness here, b/c doing so on the first request allows us to use
-		// the current time as an entropy source
+		// We don't init entropy from timer here, b/c doing so on the first request makes the value much more
+		// unpredictable
 		//
 
 	};
@@ -32,24 +36,28 @@ public:
 	void generateRandomChallengeNonce(uint32_t challengeNonce[]);
 
 private:
-	uint16_t seedvec[3];
-	uint16_t currentSeedIndex;
+	uint16_t seed_vector[3];
+	uint16_t current_seed_index;
+	IPAddress testServerIP;
+	uint32_t networkEntropy[4];
 
 	void rotateRandomSeed();
 	void readRandomSeedIndexFromFlash();
 	void readRandomSeedFromFlash();
-	void entropyFromTimer(uint32_t timerEntropy[]);
-	void entropyFromNetwork(uint32_t networkEntropy[]);
-
+	void getEntropyFromTimer(uint32_t timerEntropy[]);
+	void initEntropyFromNetwork();
+	netapp_pingreport_args_t pingTestServer();
 };
 
 /**
  * Reads the current seed index from External Flash
  */
 void RandomNumberGenerator::readRandomSeedIndexFromFlash() {
-	sFLASH_ReadBuffer((uint8_t*)&currentSeedIndex, CURRENT_SEED_INDEX_ADDRESS, sizeof(currentSeedIndex));
+	sFLASH_ReadBuffer((uint8_t*) &current_seed_index,
+			CURRENT_SEED_INDEX_ADDRESS, sizeof(current_seed_index));
 
-	debug("Reading seed index from flash: ", false); debug(currentSeedIndex);
+	debug("Reading seed index from flash: ", false);
+	debug(current_seed_index);
 }
 
 /**
@@ -72,72 +80,127 @@ void RandomNumberGenerator::rotateRandomSeed() {
 void RandomNumberGenerator::readRandomSeedFromFlash() {
 	readRandomSeedIndexFromFlash();
 
-	sFLASH_ReadBuffer((uint8_t*)seedvec, EXTERNAL_FLASH_START_ADDRESS + (SEEDS_SIZE * currentSeedIndex), SEEDS_SIZE);
+	sFLASH_ReadBuffer((uint8_t*) seed_vector,
+			EXTERNAL_FLASH_START_ADDRESS + (SEEDS_SIZE * current_seed_index),
+			SEEDS_SIZE);
 
 	debug("--- SEED ---");
-	debug(seedvec[0]);
-	debug(seedvec[1]);
-	debug(seedvec[2]);
+	debug(seed_vector[0]);
+	debug(seed_vector[1]);
+	debug(seed_vector[2]);
 	debug("------------");
 }
 
 void RandomNumberGenerator::initializeRandomness() {
-	if ( seedvec[0] == 0 ) {
+	if (seed_vector[0] == 0) {
 		rotateRandomSeed();
 
 		readRandomSeedFromFlash();
 
-		seed48(seedvec); // Seed the PRGA
+		seed48(seed_vector); // Seed the PRGA
+
+		// Collect entropy from pinging testServerIP at startup
+		initEntropyFromNetwork();
 	}
 }
 
-void RandomNumberGenerator::generateRandomChallengeNonce(uint32_t challengeNonce[]) {
-	if ( seedvec[0] == 0 ) {
+void RandomNumberGenerator::generateRandomChallengeNonce(
+		uint32_t challengeNonce[]) {
+	if (seed_vector[0] == 0) {
 		initializeRandomness();
 	}
 
 	uint32_t entropyFromTimer[4];
-	this->entropyFromTimer(entropyFromTimer);
+	this->getEntropyFromTimer(entropyFromTimer);
 
-	challengeNonce[0] = mrand48() ^ entropyFromTimer[0];
-	challengeNonce[1] = mrand48() ^ entropyFromTimer[1];
-	challengeNonce[2] = mrand48() ^ entropyFromTimer[2];
-	challengeNonce[3] = mrand48() ^ entropyFromTimer[3];
+	challengeNonce[0] = mrand48() ^ entropyFromTimer[0] ^ networkEntropy[0];
+	challengeNonce[1] = mrand48() ^ entropyFromTimer[1] ^ networkEntropy[1];
+	challengeNonce[2] = mrand48() ^ entropyFromTimer[2] ^ networkEntropy[2];
+	challengeNonce[3] = mrand48() ^ entropyFromTimer[3] ^ networkEntropy[3];
 
 	debug("--- NONCE ---");
-	Serial.print(	challengeNonce[0], HEX);
-	Serial.print(	challengeNonce[1], HEX);
-	Serial.print(	challengeNonce[2], HEX);
-	Serial.println(	challengeNonce[3], HEX);
+	Serial.print(challengeNonce[0], HEX);
+	Serial.print(challengeNonce[1], HEX);
+	Serial.print(challengeNonce[2], HEX);
+	Serial.println(challengeNonce[3], HEX);
 	debug("------------");
 
 }
 
 /**
  * Reads the current time in millis and returns a 128-bit HMAC of that value with our Master Key
+ *
+ * HMAC is used for key expansion here, since our random value is 32 bits long, whereas we require
+ * 128-bit of randomness
  */
-void RandomNumberGenerator::entropyFromTimer(uint32_t timerEntropy[]) {
-	uint32_t mils =  millis();
+void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[]) {
+	uint32_t mils = millis();
 	unsigned char hmac[20];
 
-	sha1_hmac(
-			(uint8_t*)MASTER_KEY, sizeof(MASTER_KEY),
-			(uint8_t*)&mils, sizeof(mils),
-			hmac);
+	sha1_hmac((uint8_t*) MASTER_KEY, sizeof(MASTER_KEY), (uint8_t*) &mils,
+			sizeof(mils), hmac);
 
 	memcpy(timerEntropy, hmac, 16);
 
 	debug("--- TIMER ---");
-	debug( mils );
-	Serial.print(	timerEntropy[0], HEX);
-	Serial.print(	timerEntropy[1], HEX);
-	Serial.print(	timerEntropy[2], HEX);
-	Serial.println(	timerEntropy[3], HEX);
+	debug(mils);
+	Serial.print(timerEntropy[0], HEX);
+	Serial.print(timerEntropy[1], HEX);
+	Serial.print(timerEntropy[2], HEX);
+	Serial.println(timerEntropy[3], HEX);
 	debug("------------");
 }
 
-void RandomNumberGenerator::entropyFromNetwork(uint32_t networkEntropy[]) {
-	// TODO
+/**
+ * Pings the test server 10 times and uses each number as HMAC round input. The resulting
+ * HMAC is our network entropy.
+ */
+void RandomNumberGenerator::initEntropyFromNetwork() {
+	uint32_t pingSum = 0;
+	unsigned char hmac[20];
+
+	sha1_context ctx;
+	sha1_hmac_starts(&ctx, (uint8_t*) MASTER_KEY, sizeof(MASTER_KEY));
+
+	debug("Gathering entropy from network...");
+	for ( int i = 0; i < 10; i++ ) {
+		pingSum = this->pingTestServer().avg_round_time;
+		debug(pingSum);
+		sha1_hmac_update(&ctx, (uint8_t*) &pingSum, sizeof(pingSum));
+	}
+
+	sha1_hmac_finish(&ctx, hmac);
+
+	memcpy(networkEntropy, hmac, 16);
+
+	debug("--- PING ---");
+	Serial.print(networkEntropy[0], HEX);
+	Serial.print(networkEntropy[1], HEX);
+	Serial.print(networkEntropy[2], HEX);
+	Serial.println(networkEntropy[3], HEX);
+	debug("------------");
+}
+
+/**
+ * Pings the test server 3 times and return the report
+ */
+netapp_pingreport_args_t RandomNumberGenerator::pingTestServer() {
+	uint8_t nTries = 3;
+	uint32_t pingIPAddr = testServerIP[3] << 24 | testServerIP[2] << 16
+			| testServerIP[1] << 8 | testServerIP[0];
+	unsigned long pingSize = 32UL;
+	unsigned long pingTimeout = 500UL; // in milliseconds
+
+	memset(&ping_report, 0, sizeof(netapp_pingreport_args_t));
+	ping_report_num = 0;
+
+	long psend = netapp_ping_send((UINT32*) &pingIPAddr, (unsigned long) nTries,
+			pingSize, pingTimeout);
+	unsigned long lastTime = millis();
+	while (ping_report_num == 0
+			&& (millis() < lastTime + 2 * nTries * pingTimeout)) {
+	}
+	return ping_report;
 }
 
 #endif /* LIBRARIES_RANDOM_SEEDS_H */

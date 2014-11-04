@@ -40,11 +40,19 @@ RandomNumberGenerator rng;
 void setup() {
 	init_serial_over_usb();
 
+	connect_to_wifi(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
+
 	uint32_t challengeNonce[4];
 
 	for ( int i = 0; i < 3; i++ ) {
 		rng.generateRandomChallengeNonce(challengeNonce);
 	}
+
+
+
+//	if ( WiFi.ready() ) {
+//		rng.entropyFromNetwork(challengeNonce);
+//	}
 
 }
 
