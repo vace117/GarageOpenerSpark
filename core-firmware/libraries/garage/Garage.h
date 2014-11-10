@@ -81,15 +81,15 @@ String Garage::decryptCommand(uint8_t received_data[]) {
 
 	// Calculate our own HMAC of received data
 	//
-	int hmac_data_length = data_length - 20;
+	int hmaced_data_length = data_length - 20;
 	unsigned char local_hmac[20];
 	sha1_hmac(	(uint8_t*) MASTER_KEY, sizeof(MASTER_KEY),
-				received_data, hmac_data_length,
+				received_data, hmaced_data_length,
 				local_hmac);
 
 	// Compare our HMAC to received HMAC
 	//
-	if ( memcmp(local_hmac, received_data + hmac_data_length, 20) != 0 ) {
+	if ( memcmp(local_hmac, received_data + hmaced_data_length, 20) != 0 ) {
 		debug("BAD HMAC detected!\n");
 		return "";
 	}
@@ -110,7 +110,7 @@ String Garage::decryptCommand(uint8_t received_data[]) {
 	// Decrypt the message
 	//
 	aes_context aes;
-	int aes_buffer_length = hmac_data_length - (ciphertext_start - received_data);
+	int aes_buffer_length = hmaced_data_length - (ciphertext_start - received_data);
 
 	uint8_t ciphertext[aes_buffer_length];
 	uint8_t plaintext[aes_buffer_length];
@@ -121,10 +121,10 @@ String Garage::decryptCommand(uint8_t received_data[]) {
 
 	// Remove PKCS #7 padding from our message by padding with zeroes
 	//
-	int message_size = aes_buffer_length - plaintext[aes_buffer_length - 1];
+	int message_size = aes_buffer_length - plaintext[aes_buffer_length - 1]; // The last byte contains the number of padded bytes
 	memset(plaintext + message_size, 0, aes_buffer_length - message_size);
 
-	return (char*) plaintext;
+	return (char*) plaintext; // A String object is created here
 }
 
 /**
