@@ -9,11 +9,13 @@ This code implements Spark Core firmware that runs a secure TCP/IP server in ord
 
 = Installation =
 Upload the firmware to the Spark Core like so:
- $ dfu-util -d 1d50:607f -a 0 -s 0x08005000:leave -D core-firmware.bin
+$ dfu-util -d 1d50:607f -a 1 -s 0x80000:393218 -D seeds.bin
 
+393218 is the size of the seeds.bin file. (65536 keys * 6 bytes each)
 
 = Protocol =
 The Android app connects to a TCP/IP socket exposed directly to the Internet. The available commands are:
+ - NEED_CHALLENGE
  - OPEN
  - CLOSE
  - PRESS_BUTTON
@@ -27,18 +29,18 @@ The possible responses:
 = Security =
 Symmetric shared-key security is used. The client Android app must have a secret key in order to connect. 
 
-AES-128 is used for encrypting the traffic. Challenge based, timed session token approach is used to prevent Replay Attacks. Session tokens are valid for 5 seconds after the random challenge nonce is issued. The pseudo-random generator (PRGA) is initialized using any one of the 65535 pre-computed 48-bit seeds, stored in External Flash. Every time the Spark reboots, a new seed is chosen by incrementing the seed index, also stored in External Flash. The seeds are mixed with additional entropy obtained from ping times a DNS server.
+AES-128 is used for encrypting the traffic. Challenge based, timed session token approach is used to prevent Replay Attacks. Session tokens are valid for 5 seconds after the random challenge nonce is issued. The pseudo-random generator (PRGA) is initialized using any one of the 65536 pre-computed 48-bit seeds, stored in External Flash. Every time the Spark reboots, a new seed is chosen by incrementing the seed index, which is also stored in External Flash. The seeds are mixed with additional entropy obtained from pinging a DNS server on startup and using the current time at which the random challenge is generated.
 
 The security is implemented with the following algorithm:
 
 == AndroidRequest(COMMAND) == 
 Android 1) Generate random IV_Send[16] and IV_Response[16]
-Android 2) Send [IV_Send, IV_Response, AES_CBC(Key, IV_Send, COMMAND), <==== HMAC(Key)]
+Android 2) Send [Message_Length[2], IV_Send, IV_Response, AES_CBC(Key, IV_Send, COMMAND), <==== HMAC(Key)]
 Spark 1) Verify that HMAC(Key, <payload>) matched the received HMAC
 Spark 2) Decrypt and return payload
 
 == SparkResponse(RESPONSE) == 
-Spark 1) Send [AES_CBC(Key, IV_Response, RESPONSE), <==== HMAC(Key)]
+Spark 1) Send [Message_Length[2], AES_CBC(Key, IV_Response, RESPONSE), <==== HMAC(Key)]
 Android 1) Verify that HMAC(Key, <payload>) matched the received HMAC
 Android 2) Decrypt and return response
 

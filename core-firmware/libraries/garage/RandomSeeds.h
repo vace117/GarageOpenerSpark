@@ -17,8 +17,28 @@
 #define SEEDS_SIZE (sizeof(uint16_t) * 3) // 48-bit seeds
 #define CURRENT_SEED_INDEX_ADDRESS 	(EXTERNAL_FLASH_START_ADDRESS + (NUMBER_OF_SEEDS * SEEDS_SIZE) + SEEDS_SIZE) // 0xE0000
 
+
+
+
+//#define PING_TEST_SERVER	// Comment this out to disable gathering of entropy from test server pings
+//#define ROTATE_SEED	 // Comment this out to disable seed rotation. This saves on External Flash writes
+
+
+/**
+ * Singleton class
+ */
 class RandomNumberGenerator {
 public:
+	void initializeRandomness();
+	void generateRandomChallengeNonce(uint32_t challengeNonce[]);
+	static RandomNumberGenerator& getInstance() {
+		// Guaranteed to be destroyed. Instantiated on first use.
+		//
+		static RandomNumberGenerator instance;
+		return instance;
+	}
+
+private:
 	RandomNumberGenerator() :
 			seed_vector { 0, 0, 0 },
 			current_seed_index(0),
@@ -32,10 +52,12 @@ public:
 
 	};
 
-	void initializeRandomness();
-	void generateRandomChallengeNonce(uint32_t challengeNonce[]);
+	// Make sure these are unaccessible. Otherwise we may accidently get copies of
+	// the singleton appearing.
+	//
+	RandomNumberGenerator(RandomNumberGenerator const&);
+	void operator=(RandomNumberGenerator const&);
 
-private:
 	uint16_t seed_vector[3];
 	uint16_t current_seed_index;
 	IPAddress testServerIP;
@@ -66,12 +88,14 @@ void RandomNumberGenerator::readRandomSeedIndexFromFlash() {
 void RandomNumberGenerator::rotateRandomSeed() {
 	readRandomSeedIndexFromFlash();
 
-//	currentSeedIndex++;
-//
-//	debug("Persisting new seed index: ", false); debug(currentSeedIndex);
-//
-//	sFLASH_EraseSector(CURRENT_SEED_INDEX_ADDRESS);
-//	sFLASH_WriteBuffer((uint8_t*)&currentSeedIndex, CURRENT_SEED_INDEX_ADDRESS, sizeof(currentSeedIndex));
+#ifdef ROTATE_SEED
+	current_seed_index++;
+
+	debug("Persisting new seed index: ", false); debug(current_seed_index);
+
+	sFLASH_EraseSector(CURRENT_SEED_INDEX_ADDRESS);
+	sFLASH_WriteBuffer((uint8_t*)&current_seed_index, CURRENT_SEED_INDEX_ADDRESS, sizeof(current_seed_index));
+#endif
 }
 
 /**
@@ -104,8 +128,7 @@ void RandomNumberGenerator::initializeRandomness() {
 	}
 }
 
-void RandomNumberGenerator::generateRandomChallengeNonce(
-		uint32_t challengeNonce[]) {
+void RandomNumberGenerator::generateRandomChallengeNonce(uint32_t challengeNonce[4]) {
 	if (seed_vector[0] == 0) {
 		initializeRandomness();
 	}
@@ -124,7 +147,6 @@ void RandomNumberGenerator::generateRandomChallengeNonce(
 	Serial.print(challengeNonce[2], HEX);
 	Serial.println(challengeNonce[3], HEX);
 	debug("------------");
-
 }
 
 /**
@@ -133,12 +155,13 @@ void RandomNumberGenerator::generateRandomChallengeNonce(
  * HMAC is used for key expansion here, since our random value is 32 bits long, whereas we require
  * 128-bit of randomness
  */
-void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[]) {
+void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
 	uint32_t mils = millis();
 	unsigned char hmac[20];
 
-	sha1_hmac((uint8_t*) MASTER_KEY, sizeof(MASTER_KEY), (uint8_t*) &mils,
-			sizeof(mils), hmac);
+	sha1_hmac(	(uint8_t*) MASTER_KEY, sizeof(MASTER_KEY),
+				(uint8_t*) &mils, sizeof(mils),
+				hmac);
 
 	memcpy(timerEntropy, hmac, 16);
 
@@ -164,7 +187,11 @@ void RandomNumberGenerator::initEntropyFromNetwork() {
 
 	debug("Gathering entropy from network...");
 	for ( int i = 0; i < 10; i++ ) {
+#ifdef PING_TEST_SERVER
 		pingSum = this->pingTestServer().avg_round_time;
+#else
+		pingSum = 43;
+#endif
 		debug(pingSum);
 		sha1_hmac_update(&ctx, (uint8_t*) &pingSum, sizeof(pingSum));
 	}
@@ -182,7 +209,7 @@ void RandomNumberGenerator::initEntropyFromNetwork() {
 }
 
 /**
- * Pings the test server 3 times and return the report
+ * Ping the test server 3 times and return the report
  */
 netapp_pingreport_args_t RandomNumberGenerator::pingTestServer() {
 	uint8_t nTries = 3;

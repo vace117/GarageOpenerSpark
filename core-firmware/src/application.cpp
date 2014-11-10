@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "Garage.h"
 #include "RandomSeeds.h"
+#include "tests/test_garage.h"
 
 
 // Do not connect to the Cloud
@@ -27,27 +28,21 @@ TCPClient client;
 Timer pingTimer(20000);
 IPAddress gatekeeper(192, 168, 0, 10);
 
-/**
- * Controls the garage
- */
-Garage garage;
-
 bool clientConnected = false;
 String commandBuffer; // Current command buffer
-
-RandomNumberGenerator rng;
 
 void setup() {
 	init_serial_over_usb();
 
-	connect_to_wifi(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
+//	connect_to_wifi(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
 
-	uint32_t challengeNonce[4];
+//	uint32_t challengeNonce[4];
+//
+//	for ( int i = 0; i < 3; i++ ) {
+//		RandomNumberGenerator::getInstance().generateRandomChallengeNonce(challengeNonce);
+//	}
 
-	for ( int i = 0; i < 3; i++ ) {
-		rng.generateRandomChallengeNonce(challengeNonce);
-	}
-
+	test_android_to_spark("NEED_CHALLENGE");
 
 
 //	if ( WiFi.ready() ) {
