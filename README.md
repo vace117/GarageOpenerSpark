@@ -34,13 +34,14 @@ AES-128 is used for encrypting the traffic. Challenge based, timed session token
 The security is implemented with the following algorithm:
 
 == AndroidRequest(COMMAND) == 
-Android 1) Generate random IV_Send[16] and IV_Response[16]
-Android 2) Send [Message_Length[2], IV_Send, IV_Response, AES_CBC(Key, IV_Send, COMMAND), <==== HMAC(Key)]
+Android 1) Generate random IV_Send[16]
+Android 2) Send [Message_Length[2], IV_Send, AES_CBC(Key, IV_Send, COMMAND), <==== HMAC(Key)]
 Spark 1) Verify that HMAC(Key, <payload>) matched the received HMAC
 Spark 2) Decrypt and return payload
 
 == SparkResponse(RESPONSE) == 
-Spark 1) Send [Message_Length[2], AES_CBC(Key, IV_Response, RESPONSE), <==== HMAC(Key)]
+Spark 1) Generate random IV_Response[16]
+Spark 2) Send [Message_Length[2], IV_Response[16], AES_CBC(Key, IV_Response, RESPONSE), <==== HMAC(Key)]
 Android 1) Verify that HMAC(Key, <payload>) matched the received HMAC
 Android 2) Decrypt and return response
 

@@ -44,6 +44,8 @@ void setup() {
 
 	test_android_to_spark("NEED_CHALLENGE");
 
+	test_spark_to_android("OPEN\n");
+
 
 //	if ( WiFi.ready() ) {
 //		rng.entropyFromNetwork(challengeNonce);
@@ -51,14 +53,25 @@ void setup() {
 
 }
 
+enum MessageState { NEED_MSG_LENGTH, RECEIVING_MSG };
+MessageState msgState = NEED_MSG_LENGTH;
+int msgLength = 0;
 
+#define MAX_MESSAGE_SIZE 256
+uint8_t receive_buffer[MAX_MESSAGE_SIZE] = {0};
+uint8_t send_buffer[MAX_MESSAGE_SIZE] = {0};
+
+void reset_buffers() {
+	memset(receive_buffer, 0, MAX_MESSAGE_SIZE);
+	memset(send_buffer, 0, MAX_MESSAGE_SIZE);
+	msgLength = 0;
+	msgState = NEED_MSG_LENGTH;
+}
 
 /**
  * The main WiFi loop
  */
 void loop() {
-
-
 
 //	if ( WiFi.ready() ) {
 //
@@ -81,22 +94,49 @@ void loop() {
 //				clientConnected = true;
 //			}
 //
-//			// Read commands from the client. COmmands are terminated by '\n'.
-//			while (client.available()) {
-//				char c = client.read();
-//				if ( c != '\n' ) {
-//					commandBuffer += c; // Build up the command
+//			if ( msgState == NEED_MSG_LENGTH ) {
+//				uint8_t msgLengthBuffer[2];
+//				client.read(msgLengthBuffer, 2);
+//				memcpy(&msgLength, msgLengthBuffer, 2);
+//
+//				if ( msgLength > 0 && msgLength < MAX_MESSAGE_SIZE ) {
+//					memcpy(receive_buffer, msgLengthBuffer, 2);
+//					msgState = RECEIVING_MSG;
 //				}
 //				else {
-//					// Process the received command
-//					//
-//					String response = garage.processCommand(commandBuffer);
-//					if ( response.length() > 0 ) {
-//						server.write((uint8_t*)response.c_str(), response.length());
-//					}
-//					commandBuffer = ""; // Reset command buffer
+//					reset_buffers();
 //				}
 //			}
+//			else if (msgState == RECEIVING_MSG) {
+//				uint8_t* msg_data = receive_buffer + 2;
+//				int bytesRead = client.read(msg_data, msgLength - 2);
+//				if ( bytesRead == (msgLength - 2) ) {
+//					int response_length = Garage::getInstance().processCommand(receive_buffer, send_buffer);
+//
+//					if ( response_length > 0 ) {
+//						server.write(send_buffer, response_length);
+//					}
+//				}
+//
+//				reset_buffers();
+//			}
+//
+////			// Read commands from the client. Commands are terminated by '\n'.
+////			while (client.available()) {
+////				char c = client.read();
+////				if ( c != '\n' ) {
+////					commandBuffer += c; // Build up the command
+////				}
+////				else {
+////					// Process the received command
+////					//
+////					String response = Garage::getInstance().processCommand(commandBuffer);
+////					if ( response.length() > 0 ) {
+////						server.write((uint8_t*)response.c_str(), response.length());
+////					}
+////					commandBuffer = ""; // Reset command buffer
+////				}
+////			}
 //		} else {
 //			// If no client is connected, check for a new connection
 //			//

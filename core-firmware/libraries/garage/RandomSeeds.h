@@ -23,6 +23,10 @@
 //#define PING_TEST_SERVER	// Comment this out to disable gathering of entropy from test server pings
 //#define ROTATE_SEED	 // Comment this out to disable seed rotation. This saves on External Flash writes
 
+//#define DEBUG_PRINT_SEED
+//#define DEBUG_PRINT_PING_ENTROPY
+//#define DEBUG_PRINT_TIMER_ENTROPY
+//#define DEBUG_PRINT_NONCE
 
 /**
  * Singleton class
@@ -78,8 +82,10 @@ void RandomNumberGenerator::readRandomSeedIndexFromFlash() {
 	sFLASH_ReadBuffer((uint8_t*) &current_seed_index,
 			CURRENT_SEED_INDEX_ADDRESS, sizeof(current_seed_index));
 
+#ifdef DEBUG_PRINT_SEED
 	debug("Reading seed index from flash: ", false);
 	debug(current_seed_index);
+#endif
 }
 
 /**
@@ -108,11 +114,13 @@ void RandomNumberGenerator::readRandomSeedFromFlash() {
 			EXTERNAL_FLASH_START_ADDRESS + (SEEDS_SIZE * current_seed_index),
 			SEEDS_SIZE);
 
+#ifdef DEBUG_PRINT_SEED
 	debug("--- SEED ---");
 	debug(seed_vector[0]);
 	debug(seed_vector[1]);
 	debug(seed_vector[2]);
 	debug("------------");
+#endif
 }
 
 void RandomNumberGenerator::initializeRandomness() {
@@ -141,12 +149,14 @@ void RandomNumberGenerator::generateRandomChallengeNonce(uint32_t challengeNonce
 	challengeNonce[2] = mrand48() ^ entropyFromTimer[2] ^ networkEntropy[2];
 	challengeNonce[3] = mrand48() ^ entropyFromTimer[3] ^ networkEntropy[3];
 
+#ifdef DEBUG_PRINT_NONCE
 	debug("--- NONCE ---");
 	Serial.print(challengeNonce[0], HEX);
 	Serial.print(challengeNonce[1], HEX);
 	Serial.print(challengeNonce[2], HEX);
 	Serial.println(challengeNonce[3], HEX);
 	debug("------------");
+#endif
 }
 
 /**
@@ -165,6 +175,7 @@ void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
 
 	memcpy(timerEntropy, hmac, 16);
 
+#ifdef DEBUG_PRINT_TIMER_ENTROPY
 	debug("--- TIMER ---");
 	debug(mils);
 	Serial.print(timerEntropy[0], HEX);
@@ -172,6 +183,7 @@ void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
 	Serial.print(timerEntropy[2], HEX);
 	Serial.println(timerEntropy[3], HEX);
 	debug("------------");
+#endif
 }
 
 /**
@@ -192,7 +204,9 @@ void RandomNumberGenerator::initEntropyFromNetwork() {
 #else
 		pingSum = 43;
 #endif
+#ifdef DEBUG_PRINT_PING_ENTROPY
 		debug(pingSum);
+#endif
 		sha1_hmac_update(&ctx, (uint8_t*) &pingSum, sizeof(pingSum));
 	}
 
@@ -200,12 +214,14 @@ void RandomNumberGenerator::initEntropyFromNetwork() {
 
 	memcpy(networkEntropy, hmac, 16);
 
+#ifdef DEBUG_PRINT_PING_ENTROPY
 	debug("--- PING ---");
 	Serial.print(networkEntropy[0], HEX);
 	Serial.print(networkEntropy[1], HEX);
 	Serial.print(networkEntropy[2], HEX);
 	Serial.println(networkEntropy[3], HEX);
 	debug("------------");
+#endif
 }
 
 /**
