@@ -15,6 +15,7 @@
 #include "RandomSeeds.h"
 #include "tropicssl/sha1.h"
 #include "tropicssl/aes.h"
+#include "SecureChannelServer.h"
 
 /**
  * Puts together the following data for transmission:
@@ -129,21 +130,57 @@ String decrypt_spark_data(uint8_t received_data[]) {
 }
 
 
+class TestCommunicationChannel : public CommunicationChannel {
+public:
+	TestCommunicationChannel(uint8_t* data) {
+		test_data = data;
+	}
+
+	int read(uint8_t *buffer, size_t size) {
+		memcpy(buffer, test_data, size);
+		test_data += size;
+
+		return size;
+	}
+
+	size_t write(const uint8_t *buffer, size_t size) {
+		return size;
+	}
+
+private:
+	uint8_t* test_data;
+};
+
+
+class TestMessageConsumer : public SecureMessageConsumer {
+public:
+	String processMessage(String message) {
+		debug("Consumer received command: ", 0); debug(message);
+
+		return "HAPPY DANCE!";
+	}
+};
+
+
 void test_android_to_spark(String commandFromAndroid) {
 	uint8_t send_data[180];
+	TestCommunicationChannel fakeCommChannel(send_data);
+	TestMessageConsumer fakeConsumer;
+	SecureChannelServer secureChannel(&fakeCommChannel, &fakeConsumer);
 
 	int data_length = android_request((char*)commandFromAndroid.c_str(), send_data);
 	debug("Sent bytes: ", false); debug(data_length);
 
-	String command = Garage::getInstance().decryptCommand(send_data);
-	debug("Received: ", false); debug(command);
+	secureChannel.loop();
+	secureChannel.loop();
+
 }
 
 void test_spark_to_android(String responseFromSpark) {
 	uint8_t buffer[180];
 
-	int data_length = Garage::getInstance().encryptResponse((char*)responseFromSpark.c_str(), buffer);
-	debug("Sending bytes: ", false); debug(data_length);
+//	int data_length = Garage::getInstance().encryptResponse((char*)responseFromSpark.c_str(), buffer);
+//	debug("Sending bytes: ", false); debug(data_length);
 
 	String response = decrypt_spark_data(buffer);
 	debug("Received: ", false); debug(response);
