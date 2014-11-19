@@ -7,6 +7,16 @@
 #ifndef LIBRARIES_GARAGE_UTILS_H_
 #define LIBRARIES_GARAGE_UTILS_H_
 
+void debug(const uint8_t *buffer, size_t size) {
+	Serial.print("{");
+	for ( int i = 0; i < size - 1; i++ ) {
+		Serial.print((signed char) buffer[i]); Serial.print(", ");
+	}
+
+	Serial.print((signed char) buffer[size - 1]);
+	Serial.println("}");
+}
+
 void debug(const char c[], bool new_line = true) {
 	if ( new_line ) {
 		Serial.println(c);

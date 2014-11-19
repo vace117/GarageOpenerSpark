@@ -5,50 +5,41 @@
  */
 
 #include "application.h"
-#include "wifi_support.h"
-#include "Timer.h"
+
 #include "utils.h"
 #include "Garage.h"
-#include "RandomSeeds.h"
-#include "tests/test_garage.h"
 
-#include "SecureChannelServer.h"
-#include "WiFiCommunicationChannel.h"
+#include <spark_secure_channel/SparkSecureChannelServer.h>
+#include <spark_network/WiFiCommunicationChannel.h>
 
 
-// Do not connect to the Cloud
+// Do not connect to Spark Cloud
 SYSTEM_MODE(MANUAL);
 
 
 /**
- * Used for pinging the gatekeeper every 20 seconds in order to detect disconnects
+ * The channel will listen on port 6666, and ping gatekeeper every 20 seconds in order to detect disconnects
  */
-Timer pingTimer(20000);
 IPAddress gatekeeper(192, 168, 0, 10);
+WiFiCommunicationChannel wifiCommChannel(6666, 20000, gatekeeper);
+
+/**
+ * Garage hardware controller. This is the Message Consumer for the secure channel
+ */
+Garage garage;
+
+/**
+ * Manages the encryption of all data going in and out
+ */
+SecureChannelServer secureChannel(&wifiCommChannel, &garage);
+
+
 
 
 void setup() {
 	init_serial_over_usb();
 
-//	connect_to_wifi(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
-
-//	uint32_t challengeNonce[4];
-//
-//	for ( int i = 0; i < 3; i++ ) {
-//		RandomNumberGenerator::getInstance().generateRandomChallengeNonce(challengeNonce);
-//	}
-
-	test_android_to_spark("NEED_CHALLENGE");
-	debug("---------------");
-	test_android_to_spark("OPEN");
-
-//	test_spark_to_android("OPEN\n");
-
-
-//	if ( WiFi.ready() ) {
-//		rng.entropyFromNetwork(challengeNonce);
-//	}
-
+	wifiCommChannel.open(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
 }
 
 
@@ -56,5 +47,5 @@ void setup() {
  * The main loop
  */
 void loop() {
-
+	secureChannel.loop();
 }

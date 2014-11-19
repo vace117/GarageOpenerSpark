@@ -11,10 +11,9 @@
 #define LIBRARIES_GARAGE_WIFICOMMUNICATIONCHANNEL_H_
 
 
-#include "wifi_support.h"
+#include <spark_secure_channel/SparkSecureChannelServer.h>
 #include "Timer.h"
 #include "utils.h"
-#include "SecureChannelServer.h"
 
 class WiFiCommunicationChannel : public CommunicationChannel {
 public:
@@ -27,12 +26,35 @@ public:
 
 	}
 
+	/**
+	 * Reads from client
+	 */
 	int read(uint8_t *buffer, size_t size);
+
+	/**
+	 * Writes to server
+	 */
 	size_t write(const uint8_t *buffer, size_t size);
 
+	/**
+	 * Blocks trying to get a WiFi connection. Times out if unsuccessful.
+	 */
+	void open();
+
 private:
+	/**
+	 * Port to listen on
+	 */
 	int listenPort;
+
+	/**
+	 * Instance of TCP/IP server
+	 */
 	TCPServer server;
+
+	/**
+	 * Currently connected client
+	 */
 	TCPClient client;
 
 	/**
@@ -41,11 +63,56 @@ private:
 	Timer pingTimer;
 	IPAddress pingTarget;
 
+	/**
+	 * true when there is a client connected
+	 */
 	bool clientConnected;
 
+	/**
+	 * Manages the WiFi connection and client state.
+	 *
+	 * This method is called every time before we try to read or write anything to/from the network.
+	 * It ensures that WiFi connectivity is present and functioning. This is accomplished by
+	 * pinging pingTarget every pingInterval seconds.
+	 *
+	 * It also manages clientConnected state.
+	 */
 	bool isClientConnected();
 
 };
+
+void WiFiCommunicationChannel::open() {
+	// WiFi setup
+	//
+	debug("WiFi OFF...");
+	WiFi.off();
+	delay(1000);
+
+	debug("Connecting to WiFi... ", 0);
+	WiFi.on();
+	WiFi.connect();
+	debug("Connected.");
+
+	debug("Acquiring DHCP info... ", 0);
+
+	Timer wifiConnectTimer(20000); // Restart connection attempts every 20 seconds
+	wifiConnectTimer.start();
+	while (!WiFi.ready()) {
+		SPARK_WLAN_Loop();
+
+		if ( wifiConnectTimer.isRunning() && wifiConnectTimer.isElapsed() ) {
+			// Couldn't connect for 20 seconds. Retry.
+			return;
+		}
+	}
+
+	delay(1000);
+
+	debug("Done");
+	debug("SSID: ", false);	debug(WiFi.SSID());
+	debug("IP: ", false);	debug(WiFi.localIP());
+	debug("Gateway: ", false);	debug(WiFi.gatewayIP());
+}
 
 bool WiFiCommunicationChannel::isClientConnected() {
 	if ( WiFi.ready() ) {
@@ -73,7 +140,7 @@ bool WiFiCommunicationChannel::isClientConnected() {
 			// If no client is connected, check for a new connection
 			//
 			if ( clientConnected ) {
-				debug("Client disconnected. Waiting for another connection...");
+				debug("Client disconnected. Waiting for another connection...\n\n");
 				clientConnected = false;
 			}
 			client = server.available();
@@ -86,7 +153,7 @@ bool WiFiCommunicationChannel::isClientConnected() {
 
 		clientConnected = false;
 
-		connect_to_wifi(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
+		open(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
 
 		// Start listening for clients
 		//

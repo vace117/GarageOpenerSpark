@@ -9,13 +9,13 @@
 #define LIBRARIES_GARAGE_TESTS_TEST_GARAGE_H_
 
 
+#include <SparkRandomNumberGenerator.h>
+#include <SparkSecureChannelServer.h>
 #include "utils.h"
 #include "master_key.h"
 #include "Garage.h"
-#include "RandomSeeds.h"
 #include "tropicssl/sha1.h"
 #include "tropicssl/aes.h"
-#include "SecureChannelServer.h"
 
 /**
  * Puts together the following data for transmission:
@@ -23,7 +23,7 @@
  * 		<Message_Length[2], IV_Send[16], AES_CBC(Key, IV_Send, COMMAND), <==== HMAC(Key)[20]>
  */
 int android_request(char* command, uint8_t send_data[]) {
-	uint32_t iv_send[4]; RandomNumberGenerator::getInstance().generateRandomChallengeNonce(iv_send);
+	uint32_t iv_send[4]; SparkRandomNumberGenerator::getInstance().generateRandomChallengeNonce(iv_send);
 
 	debug("Sending: ", false); debug(command);
 
@@ -144,6 +144,8 @@ public:
 	}
 
 	size_t write(const uint8_t *buffer, size_t size) {
+		debug("Sending to Android: ", 0);
+		debug(buffer, size);
 		return size;
 	}
 

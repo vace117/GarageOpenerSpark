@@ -7,16 +7,16 @@
 #ifndef LIBRARIES_GARAGE_GARAGE_H_
 #define LIBRARIES_GARAGE_GARAGE_H_
 
+#include <spark_secure_channel/SparkSecureChannelServer.h>
 #include "Timer.h"
 #include "application.h"
-#include "SecureChannelServer.h"
 
 
 #define DOOR_SENSOR_PIN 	D1
 #define DOOR_CONTROL_PIN 	D2
 
 // Response string mappings for each State
-static const char * GarageStateStrings[] { "DOOR_OPEN\n", "DOOR_CLOSED\n", "DOOR_MOVING\n" };
+static const char * GarageStateStrings[] { "DOOR_OPEN", "DOOR_CLOSED", "DOOR_MOVING" };
 
 class Garage : public SecureMessageConsumer {
 
@@ -58,6 +58,8 @@ private:
 String Garage::processMessage(String command) {
 	bool respond = true;
 
+	debug("Garage received command: ", 0); debug(command);
+
 	if ( command == "OPEN" ) {
 		debug("Opening bay doors...");
 		//openDoor();
@@ -72,6 +74,7 @@ String Garage::processMessage(String command) {
 	}
 	else if ( command == "GET_STATUS" ) {
 		// Nothing to do
+		debug("Door Status Requested...");
 	}
 	else {
 		respond = false; // Only respond to valid commands

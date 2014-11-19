@@ -39,7 +39,7 @@ Android 2) Send [Message_Length[2], IV_Send, AES_CBC(Key, IV_Send, COMMAND), <==
 Spark 1) Verify that HMAC(Key, <payload>) matched the received HMAC
 Spark 2) Decrypt and return payload
 
-== SparkResponse(RESPONSE) == 
+== SparkResponse(RESPONSE) ==
 Spark 1) Generate random IV_Response[16]
 Spark 2) Send [Message_Length[2], IV_Response[16], AES_CBC(Key, IV_Response, RESPONSE), <==== HMAC(Key)]
 Android 1) Verify that HMAC(Key, <payload>) matched the received HMAC

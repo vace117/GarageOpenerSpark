@@ -1,5 +1,15 @@
 /**
- * This class represents the garage. Specifics of processing Garage commands are handled here.
+ * This is a pseudo-random number generator.
+ *
+ * The entropy used for seeding the PRNG function (seed48) is mixed together from 3 different sources:
+ * 	1) rand48 is seeded with one of 65536 pre-computed 48-bit seeds, stored in External Flash.
+ * 		Every time the Spark reboots, the next seed is used.
+ *
+ * 	2) A specified network server is pinged 10 times. Each ping time is used as a round of HMAC(Master_Key, ping_time).
+ * 		The first 128 bits of the resulting HMAC is additional entropy XORed with every call to rand48.
+ *
+ * 	3) The generated 128-bit random number is XORed with first 128 bits of HMAC(Master_key, Current_Timestamp).
+ * 		So the time at which the random number was requested is used for additional entropy.
  *
  * @author Val Blant
  */
@@ -9,8 +19,9 @@
 
 #include <stdlib.h>
 #include <master_key.h> // Contains the super secret shared key
-#include "tropicssl/sha1.h"
-#include "spark_wiring_wifi.h"
+#include <tropicssl/sha1.h>
+
+
 
 #define EXTERNAL_FLASH_START_ADDRESS 0x80000
 #define NUMBER_OF_SEEDS 0xFFFF
@@ -31,19 +42,26 @@
 /**
  * Singleton class
  */
-class RandomNumberGenerator {
+class SparkRandomNumberGenerator {
 public:
-	void initializeRandomness();
-	void generateRandomChallengeNonce(uint32_t challengeNonce[]);
-	static RandomNumberGenerator& getInstance() {
+	/**
+	 * This class is a singleton.
+	 */
+	static SparkRandomNumberGenerator& getInstance() {
 		// Guaranteed to be destroyed. Instantiated on first use.
 		//
-		static RandomNumberGenerator instance;
+		static SparkRandomNumberGenerator instance;
 		return instance;
 	}
 
+	/**
+	 * Fills challengeNonce with 128 bits of randomness
+	 */
+	void generateRandomChallengeNonce(uint32_t challengeNonce[]);
+
+
 private:
-	RandomNumberGenerator() :
+	SparkRandomNumberGenerator() :
 			seed_vector { 0, 0, 0 },
 			current_seed_index(0),
 			testServerIP(8, 8, 8, 8), // A DNS server
@@ -59,14 +77,15 @@ private:
 	// Make sure these are unaccessible. Otherwise we may accidently get copies of
 	// the singleton appearing.
 	//
-	RandomNumberGenerator(RandomNumberGenerator const&);
-	void operator=(RandomNumberGenerator const&);
+	SparkRandomNumberGenerator(SparkRandomNumberGenerator const&);
+	void operator=(SparkRandomNumberGenerator const&);
 
 	uint16_t seed_vector[3];
 	uint16_t current_seed_index;
 	IPAddress testServerIP;
 	uint32_t networkEntropy[4];
 
+	void initializeRandomness();
 	void rotateRandomSeed();
 	void readRandomSeedIndexFromFlash();
 	void readRandomSeedFromFlash();
@@ -78,7 +97,7 @@ private:
 /**
  * Reads the current seed index from External Flash
  */
-void RandomNumberGenerator::readRandomSeedIndexFromFlash() {
+void SparkRandomNumberGenerator::readRandomSeedIndexFromFlash() {
 	sFLASH_ReadBuffer((uint8_t*) &current_seed_index,
 			CURRENT_SEED_INDEX_ADDRESS, sizeof(current_seed_index));
 
@@ -91,7 +110,7 @@ void RandomNumberGenerator::readRandomSeedIndexFromFlash() {
 /**
  * Reads persisted seed index, increments it and stores it back into Flash
  */
-void RandomNumberGenerator::rotateRandomSeed() {
+void SparkRandomNumberGenerator::rotateRandomSeed() {
 	readRandomSeedIndexFromFlash();
 
 #ifdef ROTATE_SEED
@@ -107,7 +126,7 @@ void RandomNumberGenerator::rotateRandomSeed() {
 /**
  * Reads a pre-computed PRGA seed from External Flash
  */
-void RandomNumberGenerator::readRandomSeedFromFlash() {
+void SparkRandomNumberGenerator::readRandomSeedFromFlash() {
 	readRandomSeedIndexFromFlash();
 
 	sFLASH_ReadBuffer((uint8_t*) seed_vector,
@@ -123,7 +142,7 @@ void RandomNumberGenerator::readRandomSeedFromFlash() {
 #endif
 }
 
-void RandomNumberGenerator::initializeRandomness() {
+void SparkRandomNumberGenerator::initializeRandomness() {
 	if (seed_vector[0] == 0) {
 		rotateRandomSeed();
 
@@ -136,7 +155,7 @@ void RandomNumberGenerator::initializeRandomness() {
 	}
 }
 
-void RandomNumberGenerator::generateRandomChallengeNonce(uint32_t challengeNonce[4]) {
+void SparkRandomNumberGenerator::generateRandomChallengeNonce(uint32_t challengeNonce[4]) {
 	if (seed_vector[0] == 0) {
 		initializeRandomness();
 	}
@@ -165,7 +184,7 @@ void RandomNumberGenerator::generateRandomChallengeNonce(uint32_t challengeNonce
  * HMAC is used for key expansion here, since our random value is 32 bits long, whereas we require
  * 128-bit of randomness
  */
-void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
+void SparkRandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
 	uint32_t mils = millis();
 	unsigned char hmac[20];
 
@@ -187,19 +206,19 @@ void RandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
 }
 
 /**
- * Pings the test server 10 times and uses each number as HMAC round input. The resulting
+ * Pings the test server 10 times and uses each number as HMAC round input. The first 16 bytes of resulting
  * HMAC is our network entropy.
  */
-void RandomNumberGenerator::initEntropyFromNetwork() {
+void SparkRandomNumberGenerator::initEntropyFromNetwork() {
 	uint32_t pingSum = 0;
 	unsigned char hmac[20];
 
 	sha1_context ctx;
 	sha1_hmac_starts(&ctx, (uint8_t*) MASTER_KEY, sizeof(MASTER_KEY));
 
-	debug("Gathering entropy from network...");
 	for ( int i = 0; i < 10; i++ ) {
 #ifdef PING_TEST_SERVER
+		debug("Gathering entropy from network...");
 		pingSum = this->pingTestServer().avg_round_time;
 #else
 		pingSum = 43;
@@ -227,7 +246,7 @@ void RandomNumberGenerator::initEntropyFromNetwork() {
 /**
  * Ping the test server 3 times and return the report
  */
-netapp_pingreport_args_t RandomNumberGenerator::pingTestServer() {
+netapp_pingreport_args_t SparkRandomNumberGenerator::pingTestServer() {
 	uint8_t nTries = 3;
 	uint32_t pingIPAddr = testServerIP[3] << 24 | testServerIP[2] << 16
 			| testServerIP[1] << 8 | testServerIP[0];
