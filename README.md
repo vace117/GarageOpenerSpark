@@ -28,7 +28,7 @@ The possible responses:
  - SESSION_EXPIRED
 
 = Security =
-Symmetric shared-Master_key security is used. The client Android app must have a secret Master_key in order to connect. 
+Symmetric shared-key security is used. The client Android app must have a secret key in order to connect. 
 
 AES-128 is used for encrypting the traffic. Challenge based, timed session token approach is used to prevent Replay Attacks. Session tokens are valid for 5 seconds after the random challenge nonce is issued. The pseudo-random generator (PRGA) is initialized using any one of the 65536 pre-computed 48-bit seeds, stored in External Flash. Every time the Spark reboots, a new seed is chosen by incrementing the seed index, which is also stored in External Flash. The seeds are mixed with additional entropy obtained from pinging a DNS server on startup and using the current time at which the random challenge is generated.
 
@@ -60,3 +60,4 @@ Spark 5a) Make sure that conversationToken matched the recieved one. If so, exec
 Spark 5b) If timer expires, invalidate conversationToken
 Android 4) Make sure conversationToken in response matched, update screen and invalidate conversationToken
 
+https://github.com/vace117/GarageOpenerSpark.git
