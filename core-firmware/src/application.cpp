@@ -29,9 +29,9 @@ WiFiCommunicationChannel wifiCommChannel(6666, 20000, gatekeeper);
 Garage garage;
 
 /**
- * Manages the encryption of all data going in and out
+ * Manages the encryption of all data going in and out.
  */
-SecureChannelServer secureChannel(&wifiCommChannel, &garage);
+SecureChannelServer secureChannel(&wifiCommChannel, &garage, 5000); // Conversations are valid for 5 seconds.
 
 
 

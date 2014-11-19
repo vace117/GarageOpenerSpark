@@ -36,6 +36,7 @@
 #include <spark_secure_channel/SparkRandomNumberGenerator.h>
 #include <string.h>
 #include <utils.h>
+#include <Timer.h>
 
 /**
  * Interface to be implemented by the message consumer.
@@ -78,13 +79,15 @@ public:
 
 class SecureChannelServer {
 public:
-	SecureChannelServer(CommunicationChannel* cc, SecureMessageConsumer* mc) :
-			transmissionLength(0), receive_buffer {0}, send_buffer {0}, conversationToken {0}, msgState(NEED_TRANSMISSION_LENGTH)
+	SecureChannelServer(CommunicationChannel* cc, SecureMessageConsumer* mc, int conversationDuration) :
+			transmissionLength(0), receive_buffer {0}, send_buffer {0},
+			conversationToken {0}, conversationTokenValid(false), conversationTimer(conversationDuration),
+			msgState(NEED_TRANSMISSION_LENGTH)
 	{
 		commChannel = cc;
 		msgConsumer = mc;
 
-		reset_buffers();
+		reset_transmission_state();
 	}
 
 	/**
@@ -119,6 +122,13 @@ private:
 	 * Locally computed Conversation Token ( HMAC(Master_Key, Challenge[16]) )
 	 */
 	unsigned char conversationToken[20];
+	bool conversationTokenValid;
+
+	/**
+	 * This timer expires the Conversation token after a specified amount of time
+	 */
+	Timer conversationTimer;
+
 
 	/**
 	 * Transmission stages
@@ -129,7 +139,19 @@ private:
 	/**
 	 * Lose all state and start waiting on a new transmission
 	 */
-	void reset_buffers();
+	void reset_transmission_state();
+
+	/**
+	 * Returns true if conversationTimer has not expired and 'received_conv_token' equals
+	 * our local 'conversationToken'
+	 */
+	bool isConversationValid(uint8_t received_conv_token[]);
+
+	/**
+	 * This will be executed in the main loop to make sure that the conversation
+	 * is invalidated after conversationDuration milliseconds
+	 */
+	void invalidateConversationTokenIfExpired();
 
 	/**
 	 * Responsible for handling a transmission after it was received in entirety.
@@ -270,12 +292,31 @@ int SecureChannelServer::encryptResponsePayload(unsigned char* response_payload,
 
 
 
-void SecureChannelServer::reset_buffers() {
+void SecureChannelServer::reset_transmission_state() {
 	memset(receive_buffer, 0, MAX_TRANSMISSION_SIZE);
 	memset(send_buffer, 0, MAX_TRANSMISSION_SIZE);
 	transmissionLength = 0;
 	msgState = NEED_TRANSMISSION_LENGTH;
+}
 
+void SecureChannelServer::invalidateConversationTokenIfExpired() {
+	if ( conversationTimer.isRunning() && conversationTimer.isElapsed() ) {
+		debug("Invalidating Conversation.\n");
+		memset(conversationToken, 0, 20);
+		conversationTokenValid = false;
+	}
+}
+
+bool SecureChannelServer::isConversationValid(uint8_t received_conv_token[]) {
+	bool valid = false;
+
+	if ( conversationTokenValid && conversationTimer.isRunning() && !conversationTimer.isElapsed() ) {
+		if ( memcmp(conversationToken, received_conv_token, 20) == 0 ) {
+			valid = true;
+		}
+	}
+
+	return valid;
 }
 
 int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], uint8_t response_data[]) {
@@ -307,6 +348,11 @@ int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], ui
 						responsePayloadBytes, responsePayloadLength,
 						conversationToken);
 
+			// Start Conversation Timer
+			//
+			conversationTimer.start();
+			conversationTokenValid = true;
+
 	//		debug(conversationToken, 20);
 		}
 		else {
@@ -317,7 +363,7 @@ int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], ui
 	//		debug("Ours  : ", 0); debug(conversationToken, 20);
 	//		debug("Theirs: ", 0); debug(decrypted_message, 20);
 
-			if ( memcmp(conversationToken, decrypted_payload, 20) == 0 ) {
+			if ( isConversationValid(decrypted_payload) ) {
 				debug(" OK");
 
 				// Pass the message to the consumer
@@ -350,6 +396,8 @@ int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], ui
 }
 
 void SecureChannelServer::loop() {
+	invalidateConversationTokenIfExpired();
+
 	if ( msgState == NEED_TRANSMISSION_LENGTH ) {
 		uint8_t transmissionLengthBuffer[2] = {0};
 		int bytesRead = commChannel->read(transmissionLengthBuffer, 2);
@@ -362,7 +410,7 @@ void SecureChannelServer::loop() {
 				msgState = RECEIVING_TRANSMISSION;
 			}
 			else {
-				reset_buffers();
+				reset_transmission_state();
 			}
 
 			debug("Incoming transmission length: ", 0); debug(transmissionLength, 0); debug(" bytes");
@@ -380,7 +428,7 @@ void SecureChannelServer::loop() {
 			}
 		}
 
-		reset_buffers();
+		reset_transmission_state();
 	}
 }
 
