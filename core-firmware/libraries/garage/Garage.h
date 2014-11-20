@@ -24,7 +24,7 @@ public:
 	enum State { DOOR_OPEN, DOOR_CLOSED, DOOR_MOVING };
 
 	Garage() : doorTravelTimer(10000) {
-		pinMode(DOOR_SENSOR_PIN, INPUT_PULLDOWN); // Using internal 40k pull-down resistor
+		pinMode(DOOR_SENSOR_PIN, INPUT_PULLUP); // Using internal 40k pull-up resistor
 		pinMode(DOOR_CONTROL_PIN, OUTPUT);
 		digitalWrite(DOOR_CONTROL_PIN, LOW); // Open transistor switch
 	};
@@ -62,15 +62,15 @@ String Garage::processMessage(String command) {
 
 	if ( command == "OPEN" ) {
 		debug("Opening bay doors...");
-		//openDoor();
+		openDoor();
 	}
 	else if ( command == "CLOSE" ) {
 		debug("Closing bay doors...");
-//		closeDoor();
+		closeDoor();
 	}
 	else if ( command == "PRESS_BUTTON" ) {
 		debug("Simulating manual button click...");
-//		pressDoorSwitch();
+		pressDoorSwitch();
 	}
 	else if ( command == "GET_STATUS" ) {
 		// Nothing to do
@@ -132,7 +132,7 @@ Garage::State Garage::readDoorSensor() {
  */
 void Garage::pressDoorSwitch() {
 	digitalWrite(DOOR_CONTROL_PIN, HIGH);
-	delay(500);
+	delay(1000);
 	digitalWrite(DOOR_CONTROL_PIN, LOW);
 
 	doorTravelTimer.start(); // Give the door time to travel
