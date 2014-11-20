@@ -1,5 +1,6 @@
 /**
- * This class represents the garage. Specifics of processing Garage commands are handled here.
+ * This class represents the garage. Specifics of processing Garage commands and working
+ * with Garage hardware are handled here.
  *
  * @author Val Blant
  */
@@ -29,32 +30,55 @@ public:
 		digitalWrite(DOOR_CONTROL_PIN, LOW); // Open transistor switch
 	};
 
+	/**
+	 * Open the door, if it is closed
+	 */
 	void openDoor();
+
+	/**
+	 * Close the door, if it is open
+	 */
 	void closeDoor();
+
+	/**
+	 * Uses doorTravelTimer to see if the door is still in motion, or if we can read the Door sensor now.
+	 */
 	State getDoorStatus();
+
+	/**
+	 * Simulates a manual click of the button in the garage
+	 */
 	void pressDoorSwitch();
 
 	bool isDoorOpen() { return getDoorStatus() == DOOR_OPEN; };
 	bool isDoorClosed() { return getDoorStatus() == DOOR_CLOSED; };
 	bool isDoorMoving() { return getDoorStatus() == DOOR_MOVING; };
 
+	/**
+	 * Accepts a command received over the network. Only known commands result in any kind of work or response.
+	 */
 	String processMessage(String command);
 
 
 private:
 
+	/**
+	 * Estimate of how long it takes for the door to open and close.
+	 */
 	Timer doorTravelTimer;
-	State readDoorSensor();
 
-	uint32_t iv_response[4]; // This is the IV to be used for next response
+	/**
+	 * Reads the magnetic reed switch sensor attached to the garage door.
+	 *
+	 * Velleman HAA28 sensor is being used.
+	 *
+	 * When the door is closed, the switch is closed and DOOR_SENSOR_PIN is pulled to ground
+	 */
+	State readDoorSensor();
 
 };
 
 
-/**
- * Accepts a command received over the network. The command is decoded with our shared key
- * and executed. Only known commands result in any kind of work or response.
- */
 String Garage::processMessage(String command) {
 	bool respond = true;
 
@@ -83,9 +107,7 @@ String Garage::processMessage(String command) {
 	return respond ? GarageStateStrings[ getDoorStatus() ] : "";
 }
 
-/**
- * Uses doorTravelTimer to see if the door is still in motion, or if we can read the Door reed sensor now.
- */
+
 Garage::State Garage::getDoorStatus() {
 	if ( doorTravelTimer.isRunning() ) {
 		if ( doorTravelTimer.isElapsed() ) {
@@ -99,18 +121,12 @@ Garage::State Garage::getDoorStatus() {
 
 }
 
-/**
- * Open the door, if it is closed
- */
 void Garage::openDoor() {
 	if ( !isDoorMoving() && isDoorClosed() ) {
 		pressDoorSwitch();
 	}
 }
 
-/**
- * Open the door, if it is open
- */
 void Garage::closeDoor() {
 	if ( !isDoorMoving() && isDoorOpen() ) {
 		pressDoorSwitch();
@@ -118,18 +134,10 @@ void Garage::closeDoor() {
 }
 
 
-
-
-/**
- * Figures out if the door is open or closed based on the reed sensor state
- */
 Garage::State Garage::readDoorSensor() {
 	return digitalRead(DOOR_SENSOR_PIN) == HIGH ? DOOR_OPEN : DOOR_CLOSED;
 }
 
-/**
- * Simulates a manual click of the button in the garage
- */
 void Garage::pressDoorSwitch() {
 	digitalWrite(DOOR_CONTROL_PIN, HIGH);
 	delay(1000);
