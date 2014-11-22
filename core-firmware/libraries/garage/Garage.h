@@ -24,7 +24,7 @@ class Garage : public SecureMessageConsumer {
 public:
 	enum State { DOOR_OPEN, DOOR_CLOSED, DOOR_MOVING };
 
-	Garage() : doorTravelTimer(10000) {
+	Garage() : doorTravelTimer(15000) {
 		pinMode(DOOR_SENSOR_PIN, INPUT_PULLUP); // Using internal 40k pull-up resistor
 		pinMode(DOOR_CONTROL_PIN, OUTPUT);
 		digitalWrite(DOOR_CONTROL_PIN, LOW); // Open transistor switch
@@ -109,8 +109,10 @@ String Garage::processMessage(String command) {
 
 
 Garage::State Garage::getDoorStatus() {
+
 	if ( doorTravelTimer.isRunning() ) {
 		if ( doorTravelTimer.isElapsed() ) {
+			debug("Door Timer Elapsed.");
 			return readDoorSensor();
 		}
 		else return DOOR_MOVING;
@@ -143,6 +145,7 @@ void Garage::pressDoorSwitch() {
 	delay(1000);
 	digitalWrite(DOOR_CONTROL_PIN, LOW);
 
+	debug("Door timer started.");
 	doorTravelTimer.start(); // Give the door time to travel
 
 }

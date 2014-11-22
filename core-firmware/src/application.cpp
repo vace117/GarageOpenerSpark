@@ -37,7 +37,8 @@ SecureChannelServer secureChannel(&wifiCommChannel, &garage, 5000); // Conversat
 
 
 void setup() {
-	init_serial_over_usb();
+	// Uncomment this to debug over Serial
+	//init_serial_over_usb();
 
 	wifiCommChannel.open(); // Blocks trying to get a WiFi connection. Times out if unsuccessful.
 }
