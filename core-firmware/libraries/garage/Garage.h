@@ -13,8 +13,8 @@
 #include "application.h"
 
 
-#define DOOR_SENSOR_PIN 	D1
-#define DOOR_CONTROL_PIN 	D2
+#define DOOR_SENSOR_PIN 	D0
+#define DOOR_CONTROL_PIN 	D6
 
 // Response string mappings for each State
 static const char * GarageStateStrings[] { "DOOR_OPEN", "DOOR_CLOSED", "DOOR_MOVING" };
