@@ -112,16 +112,26 @@ void WiFiCommunicationChannel::open() {
 	debug("SSID: ", false);	debug(WiFi.SSID());
 	debug("IP: ", false);	debug(WiFi.localIP());
 	debug("Gateway: ", false);	debug(WiFi.gatewayIP());
+	debug("Listening on ", 0); debug(WiFi.localIP(), 0); debug(":", 0); debug(listenPort);
+
+	pingTimer.start();
 }
 
 bool WiFiCommunicationChannel::isClientConnected() {
 	if ( WiFi.ready() ) {
 
+//		if ( socketConnectionTimer.isRunning() && socketConnectionTimer.isElapsed() ) {
+//			debug("Disconnecting lingering client...");
+//			client.stop();
+//		}
+
 		// Ping pingTarget to make sure our connection is live
 		//
 		if ( pingTimer.isRunning() && pingTimer.isElapsed() ) {
+			debug("Pinging test server...", 0);
 			int numberOfReceivedPackets = WiFi.ping(pingTarget, 3);
 			if ( numberOfReceivedPackets > 0 ) {
+				debug(" OK");
 				pingTimer.start();
 			}
 			else {

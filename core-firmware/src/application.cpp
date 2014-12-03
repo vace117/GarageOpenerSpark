@@ -18,10 +18,10 @@ SYSTEM_MODE(MANUAL);
 
 
 /**
- * The channel will listen on port 6666, and ping gatekeeper every 20 seconds in order to detect disconnects
+ * The channel will listen on port 6666, and ping gatekeeper every 60 seconds in order to detect disconnects
  */
 IPAddress gatekeeper(192, 168, 0, 10);
-WiFiCommunicationChannel wifiCommChannel(6666, 20000, gatekeeper);
+WiFiCommunicationChannel wifiCommChannel(6666, 60000, gatekeeper);
 
 /**
  * Garage hardware controller. This is the Message Consumer for the secure channel
