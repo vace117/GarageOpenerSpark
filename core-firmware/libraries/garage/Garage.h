@@ -85,11 +85,11 @@ String Garage::processMessage(String command) {
 	debug("Garage received command: ", 0); debug(command);
 
 	if ( command == "OPEN" ) {
-		debug("Opening bay doors...");
+//		debug("Opening bay doors...");
 		openDoor();
 	}
 	else if ( command == "CLOSE" ) {
-		debug("Closing bay doors...");
+//		debug("Closing bay doors...");
 		closeDoor();
 	}
 	else if ( command == "PRESS_BUTTON" ) {
@@ -98,7 +98,7 @@ String Garage::processMessage(String command) {
 	}
 	else if ( command == "GET_STATUS" ) {
 		// Nothing to do
-		debug("Door Status Requested...");
+//		debug("Door Status Requested...");
 	}
 	else {
 		respond = false; // Only respond to valid commands
@@ -112,7 +112,7 @@ Garage::State Garage::getDoorStatus() {
 
 	if ( doorTravelTimer.isRunning() ) {
 		if ( doorTravelTimer.isElapsed() ) {
-			debug("Door Timer Elapsed.");
+//			debug("Door Timer Elapsed.");
 			return readDoorSensor();
 		}
 		else return DOOR_MOVING;
@@ -145,7 +145,7 @@ void Garage::pressDoorSwitch() {
 	delay(1000);
 	digitalWrite(DOOR_CONTROL_PIN, LOW);
 
-	debug("Door timer started.");
+//	debug("Door timer started.");
 	doorTravelTimer.start(); // Give the door time to travel
 
 }

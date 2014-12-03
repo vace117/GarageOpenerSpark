@@ -20,6 +20,7 @@ public:
 	WiFiCommunicationChannel(int listenPort, int pingInterval, IPAddress pingTarget) :
 		listenPort(listenPort),
 		server(listenPort),
+//		socketConnectionTimer(5000),
 		pingTimer(pingInterval),
 		pingTarget(pingTarget),
 		clientConnected(false) {
@@ -56,6 +57,11 @@ private:
 	 * Currently connected client
 	 */
 	TCPClient client;
+
+	/**
+	 * Used to disconnect clients that are connected for too long
+	 */
+//	Timer socketConnectionTimer;
 
 	/**
 	 * Used for pinging the pingTarget every pingInterval seconds in order to detect disconnects
@@ -144,6 +150,7 @@ bool WiFiCommunicationChannel::isClientConnected() {
 			if ( !clientConnected ) {
 				debug("Client connected!");
 				clientConnected = true;
+//				socketConnectionTimer.start();
 			}
 
 		} else {
@@ -152,6 +159,7 @@ bool WiFiCommunicationChannel::isClientConnected() {
 			if ( clientConnected ) {
 				debug("Client disconnected. Waiting for another connection...\n\n");
 				clientConnected = false;
+//				socketConnectionTimer.stop();
 			}
 			client = server.available();
 		}
