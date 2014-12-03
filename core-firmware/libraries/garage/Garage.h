@@ -24,7 +24,7 @@ class Garage : public SecureMessageConsumer {
 public:
 	enum State { DOOR_OPEN, DOOR_CLOSED, DOOR_MOVING };
 
-	Garage() : doorTravelTimer(15000) {
+	Garage() : doorTravelTimer(4500) {
 		pinMode(DOOR_SENSOR_PIN, INPUT_PULLUP); // Using internal 40k pull-up resistor
 		pinMode(DOOR_CONTROL_PIN, OUTPUT);
 		digitalWrite(DOOR_CONTROL_PIN, LOW); // Open transistor switch
