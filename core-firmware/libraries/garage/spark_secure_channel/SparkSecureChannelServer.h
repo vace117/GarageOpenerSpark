@@ -46,7 +46,7 @@ public:
 	virtual ~SecureMessageConsumer() {}
 
 	/**
-	 * Decrypted messages will be provided to tis method
+	 * Decrypted messages will be provided to this method
 	 */
 	virtual String processMessage(String message) = 0;
 };

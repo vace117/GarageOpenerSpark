@@ -136,6 +136,8 @@ public:
 		test_data = data;
 	}
 
+	void open() {}
+
 	int read(uint8_t *buffer, size_t size) {
 		memcpy(buffer, test_data, size);
 		test_data += size;
@@ -168,7 +170,7 @@ void test_android_to_spark(String commandFromAndroid) {
 	uint8_t send_data[180];
 	TestCommunicationChannel fakeCommChannel(send_data);
 	TestMessageConsumer fakeConsumer;
-	SecureChannelServer secureChannel(&fakeCommChannel, &fakeConsumer);
+	SecureChannelServer secureChannel(&fakeCommChannel, &fakeConsumer, 5000);
 
 	int data_length = android_request((char*)commandFromAndroid.c_str(), send_data);
 	debug("Sent bytes: ", false); debug(data_length);
