@@ -18,7 +18,6 @@ The Android app connects to a TCP/IP socket exposed directly to the Internet. Th
  - NEED_CHALLENGE
  - OPEN
  - CLOSE
- - PRESS_BUTTON
  - GET_STATUS
 
 The possible responses:
@@ -60,4 +59,3 @@ Spark 5a) Make sure that conversationToken matched the recieved one. If so, exec
 Spark 5b) If timer expires, invalidate conversationToken
 Android 4) Make sure conversationToken in response matched, update screen and invalidate conversationToken
 
-https://github.com/vace117/GarageOpenerSpark.git

@@ -1,61 +1,40 @@
 //============================================================================
 // Name        : RandomNumberGenerator.cpp
 // Author      : Val Blant
-// Version     :
-// Copyright   : 
-// Description : Hello World in C++, Ansi-style
+// Description : Generates 65536 pre-computed 48-bit seeds and stores them in seeds.bin
 //============================================================================
 
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <time.h>
 #include <string.h>
 using namespace std;
 
 int main() {
-	uint8_t decrypted_message[256] = {0};
+	srand( time(NULL) );
 
-	int msgLength = 14;
-	memcpy(decrypted_message, "NEED_CHALLENGE", msgLength);
+	FILE *file = fopen("seeds.bin", "wb");
 
-	int diff = memcmp(decrypted_message, (uint8_t*)"NEED_CHALLENGE", 14);
+	unsigned short int seedvec[3];
 
-	if ( diff == 0 ) {
-		cout << "!!!MATCH!!!" << endl;
+	for ( int i = 0; i <= 0xFFFF; i++ ) {
+		int r = rand();
+		memcpy(&seedvec, &r, 4);
+
+		r = rand() & 0xffff;
+		memcpy(&seedvec[2], &r, 2);
+
+		printf("%04x %04x %04x\n", seedvec[0], seedvec[1], seedvec[2]);
+		fwrite(seedvec, sizeof(seedvec), 1, file);
 	}
-	else {
-		cout << "!!!Nope!!!" << endl;
-	}
 
+	// Initialize the seed index to 0
+	unsigned short int index = 1;
+	fwrite(&index, sizeof(index), 1, file);
+
+	fclose(file);
+
+	cout << "!!!Done!!!" << endl;
 	return 0;
 }
-
-//int main() {
-//	srand( time(NULL) );
-//
-//	FILE *file = fopen("seeds.bin", "wb");
-//
-//	unsigned short int seedvec[3];
-//
-//	for ( int i = 0; i <= 0xFFFF; i++ ) {
-//		int r = rand();
-//		memcpy(&seedvec, &r, 4);
-//
-//		r = rand() & 0xffff;
-//		memcpy(&seedvec[2], &r, 2);
-//
-////		printf("%04x %04x %04x\n", seedvec[0], seedvec[1], seedvec[2]);
-//		fwrite(seedvec, sizeof(seedvec), 1, file);
-//	}
-//
-//	// Initialize the seed index to 0
-//	unsigned short int index = 1;
-//	fwrite(&index, sizeof(index), 1, file);
-//
-//	fclose(file);
-//
-//	cout << "!!!Done!!!" << endl;
-//	return 0;
-//}
