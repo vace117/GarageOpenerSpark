@@ -301,7 +301,7 @@ void SecureChannelServer::reset_transmission_state() {
 
 void SecureChannelServer::invalidateConversationTokenIfExpired() {
 	if ( conversationTimer.isRunning() && conversationTimer.isElapsed() ) {
-		debug("Invalidating Conversation.\n");
+//		debug("Invalidating Conversation.\n");
 		memset(conversationToken, 0, 20);
 		conversationTokenValid = false;
 	}
@@ -330,7 +330,7 @@ int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], ui
 	int responseTransmissionLength = 0; // Total encoded response transmission length
 
 
-	debug("Received ", 0); debug(decryptedPayloadLength, 0); debug("-byte payload: ", 0); debug((const char *)decrypted_payload);
+//	debug("Received ", 0); debug(decryptedPayloadLength, 0); debug("-byte payload: ", 0); debug((const char *)decrypted_payload);
 
 	if ( decryptedPayloadLength > 0 ) {
 		if ( memcmp(decrypted_payload, "NEED_CHALLENGE", decryptedPayloadLength) == 0 ) {
@@ -358,13 +358,13 @@ int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], ui
 		else {
 			// Any other message must contain a Conversation Token prepended to the message in the payload
 			//
-			debug("Verifying Conversation Token...", 0);
+//			debug("Verifying Conversation Token...", 0);
 
 	//		debug("Ours  : ", 0); debug(conversationToken, 20);
 	//		debug("Theirs: ", 0); debug(decrypted_message, 20);
 
 			if ( isConversationValid(decrypted_payload) ) {
-				debug(" OK");
+//				debug(" OK");
 
 				// Pass the message to the consumer
 				//
@@ -375,7 +375,7 @@ int SecureChannelServer::processReceivedTransmission(uint8_t received_data[], ui
 				responsePayloadLength = messageConsumerResponse.length();
 			}
 			else {
-				debug(" FAILED");
+//			debug(" FAILED");
 
 				// Tell the client that this conversation has been closed
 				//
@@ -413,7 +413,7 @@ void SecureChannelServer::loop() {
 				reset_transmission_state();
 			}
 
-			debug("Incoming transmission length: ", 0); debug(transmissionLength, 0); debug(" bytes");
+//			debug("Incoming transmission length: ", 0); debug(transmissionLength, 0); debug(" bytes");
 		}
 
 	}
@@ -423,7 +423,7 @@ void SecureChannelServer::loop() {
 			int response_length = processReceivedTransmission(receive_buffer, send_buffer);
 
 			if ( response_length > 0 ) {
-				debug("Sending ", 0); debug(response_length, 0); debug(" bytes to client...\n");
+//				debug("Sending ", 0); debug(response_length, 0); debug(" bytes to client...\n");
 				commChannel->write(send_buffer, response_length);
 			}
 		}

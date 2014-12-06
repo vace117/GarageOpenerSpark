@@ -5,7 +5,7 @@
  * 	1) rand48 is seeded with one of 65536 pre-computed 48-bit seeds, stored in External Flash.
  * 		Every time the Spark reboots, the next seed is used.
  *
- * 	2) A specified network server is pinged 10 times. Each ping time is used as a round of HMAC(Master_Key, ping_time).
+ * 	2) A specified network server is pinged 5 times. Each ping time is used as a round of HMAC(Master_Key, ping_time).
  * 		The first 128 bits of the resulting HMAC is additional entropy XORed with every call to rand48.
  *
  * 	3) The generated 128-bit random number is XORed with first 128 bits of HMAC(Master_key, Current_Timestamp).
@@ -31,8 +31,8 @@
 
 
 
-//#define PING_TEST_SERVER	// Comment this out to disable gathering of entropy from test server pings
-//#define ROTATE_SEED	 // Comment this out to disable seed rotation. This saves on External Flash writes
+#define PING_TEST_SERVER	// Comment this out to disable gathering of entropy from test server pings
+#define ROTATE_SEED	 // Comment this out to disable seed rotation. This saves on External Flash writes
 
 //#define DEBUG_PRINT_SEED
 //#define DEBUG_PRINT_PING_ENTROPY
@@ -206,7 +206,7 @@ void SparkRandomNumberGenerator::getEntropyFromTimer(uint32_t timerEntropy[4]) {
 }
 
 /**
- * Pings the test server 10 times and uses each number as HMAC round input. The first 16 bytes of resulting
+ * Pings the test server 5 times and uses each number as HMAC round input. The first 16 bytes of resulting
  * HMAC is our network entropy.
  */
 void SparkRandomNumberGenerator::initEntropyFromNetwork() {
@@ -216,7 +216,7 @@ void SparkRandomNumberGenerator::initEntropyFromNetwork() {
 	sha1_context ctx;
 	sha1_hmac_starts(&ctx, (uint8_t*) MASTER_KEY, sizeof(MASTER_KEY));
 
-	for ( int i = 0; i < 10; i++ ) {
+	for ( int i = 0; i < 5; i++ ) {
 #ifdef PING_TEST_SERVER
 		debug("Gathering entropy from network...");
 		pingSum = this->pingTestServer().avg_round_time;

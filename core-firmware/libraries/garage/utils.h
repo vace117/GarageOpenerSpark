@@ -59,10 +59,11 @@ void init_serial_over_usb() {
 	//
 	Serial.begin(9600);
 
+	// Uncomment this to
 	// Wait here until the user presses ENTER
 	//
-	while (!Serial.available())
-		SPARK_WLAN_Loop();
+//	while (!Serial.available())
+//		SPARK_WLAN_Loop();
 
 	debug("Serial over USB ready to go.");
 }

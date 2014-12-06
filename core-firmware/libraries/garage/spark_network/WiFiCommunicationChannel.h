@@ -20,6 +20,7 @@ public:
 	WiFiCommunicationChannel(int listenPort, int pingInterval, IPAddress pingTarget) :
 		listenPort(listenPort),
 		server(listenPort),
+//		socketConnectionTimer(5000),
 		pingTimer(pingInterval),
 		pingTarget(pingTarget),
 		clientConnected(false) {
@@ -56,6 +57,11 @@ private:
 	 * Currently connected client
 	 */
 	TCPClient client;
+
+	/**
+	 * Used to disconnect clients that are connected for too long
+	 */
+//	Timer socketConnectionTimer;
 
 	/**
 	 * Used for pinging the pingTarget every pingInterval seconds in order to detect disconnects
@@ -112,16 +118,26 @@ void WiFiCommunicationChannel::open() {
 	debug("SSID: ", false);	debug(WiFi.SSID());
 	debug("IP: ", false);	debug(WiFi.localIP());
 	debug("Gateway: ", false);	debug(WiFi.gatewayIP());
+	debug("Listening on ", 0); debug(WiFi.localIP(), 0); debug(":", 0); debug(listenPort);
+
+	pingTimer.start();
 }
 
 bool WiFiCommunicationChannel::isClientConnected() {
 	if ( WiFi.ready() ) {
 
+//		if ( socketConnectionTimer.isRunning() && socketConnectionTimer.isElapsed() ) {
+//			debug("Disconnecting lingering client...");
+//			client.stop();
+//		}
+
 		// Ping pingTarget to make sure our connection is live
 		//
 		if ( pingTimer.isRunning() && pingTimer.isElapsed() ) {
+			debug("Pinging test server...", 0);
 			int numberOfReceivedPackets = WiFi.ping(pingTarget, 3);
 			if ( numberOfReceivedPackets > 0 ) {
+				debug(" OK");
 				pingTimer.start();
 			}
 			else {
@@ -134,6 +150,7 @@ bool WiFiCommunicationChannel::isClientConnected() {
 			if ( !clientConnected ) {
 				debug("Client connected!");
 				clientConnected = true;
+//				socketConnectionTimer.start();
 			}
 
 		} else {
@@ -142,6 +159,7 @@ bool WiFiCommunicationChannel::isClientConnected() {
 			if ( clientConnected ) {
 				debug("Client disconnected. Waiting for another connection...\n\n");
 				clientConnected = false;
+//				socketConnectionTimer.stop();
 			}
 			client = server.available();
 		}

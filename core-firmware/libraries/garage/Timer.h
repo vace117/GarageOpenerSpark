@@ -10,6 +10,7 @@ public:
     enum State { RUNNING, STOPPED };
     Timer(unsigned long milliSeconds) { _timingPeriod = milliSeconds; }
     void start(); // Start the timer
+    void stop() {_state = Timer::STOPPED;}
     bool isElapsed(); // Check if _timingPeriod elapsed
     enum State state() { return _state; }
     bool isRunning() { return _state == Timer::RUNNING; }
